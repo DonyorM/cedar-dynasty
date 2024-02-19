@@ -16,7 +16,7 @@
          :or {optimize true, debug false, verbose false}
          :as config}
         (assoc argmap :hyperfiddle.electric/user-version electric-user-version)]
-    (b/delete {:path "resources/public/electric_starter_app/js"})
+    (b/delete {:path "resources/public/great_dalmuti/js"})
     (b/delete {:path "resources/electric-manifest.edn"})
 
     ; bake user-version into artifact, cljs and clj
