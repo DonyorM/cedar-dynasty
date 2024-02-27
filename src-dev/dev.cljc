@@ -5,9 +5,7 @@
     #?(:clj [great-dalmuti.server-jetty :as jetty])
     #?(:clj [shadow.cljs.devtools.api :as shadow])
     #?(:clj [shadow.cljs.devtools.server :as shadow-server])
-    #?(:clj [clojure.tools.logging :as log])
-    #?(:clj [sail.core :as sail])
-    #?(:clj [clojure.java.io :as io])))
+    #?(:clj [clojure.tools.logging :as log])))
 
 (comment (-main)) ; repl entrypoint
 
@@ -24,7 +22,6 @@
      (defn -main [& args]
        (log/info "Starting Electric compiler and server...")
 
-       (sail/watch (.getPath (io/file "resources" (:resources-path config) "styles.gen.css")) {:paths (:source-paths config)})
        (shadow-server/start!)
        (shadow/watch :dev)
        (comment (shadow-server/stop!))
