@@ -9,5 +9,6 @@
 (s/def ::hand (s/keys :req [::user-id ::name ::count]))
 (s/def ::cards (s/coll-of ::card))
 (s/def ::player (s/keys :req [::user-id ::name ::cards]))
+(s/def ::play (s/keys ::req [::card ::count ::user-id]))
 (s/def ::players (s/coll-of ::player))
-(s/def ::game (s/keys :req [::players]))
+(s/def ::game (s/keys :req [::players ::play]))
