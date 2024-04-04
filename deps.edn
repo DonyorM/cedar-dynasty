@@ -7,21 +7,26 @@
            com.hypalynx/sail              {:mvn/version "0.8.15"}}
  :paths   ["src" "resources"]
  :aliases {:dev
-           {:extra-paths ["src-dev" "tests"]
+           {:extra-paths ["src-dev"]
             :extra-deps  {thheller/shadow-cljs          {:mvn/version "2.27.4"}
                           io.github.clojure/tools.build {:mvn/version "0.9.6"
                                                          :exclusions  [com.google.guava/guava ; Guava version conflict between tools.build and clojurescript.
                                                                        org.slf4j/slf4j-nop]} ; clashes with app logger
-                          org.clojure/test.check {:mvn/version "1.1.1"}}}
+                          org.clojure/test.check        {:mvn/version "1.1.1"}}}
            :prod
            {:extra-paths ["src-prod"]}
 
-           :build ; use `clj -X:build build-client`, NOT -T! build/app classpath contamination cannot be prevented
+           :build                                           ; use `clj -X:build build-client`, NOT -T! build/app classpath contamination cannot be prevented
            {:extra-paths ["src-build"]
             :ns-default  build
             :extra-deps  {thheller/shadow-cljs          {:mvn/version "2.26.2"}
                           io.github.clojure/tools.build {:mvn/version "0.9.6"
-                                                         :exclusions  [com.google.guava/guava   ; Guava version conflict between tools.build and clojurescript.
+                                                         :exclusions  [com.google.guava/guava ; Guava version conflict between tools.build and clojurescript.
                                                                        org.slf4j/slf4j-nop]}}} ; clashes with app logger
-           }
- }
+
+           :test {
+                  :extra-paths ["tests"]
+                  :main-opts ["-m" "kaocha.runner"]
+                  :extra-deps {lambdaisland/kaocha    {:mvn/version "1.88.1376"}
+                               org.clojure/test.check {:mvn/version "1.1.1"}}
+                  }}}

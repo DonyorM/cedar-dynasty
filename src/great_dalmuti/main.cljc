@@ -8,20 +8,20 @@
 
 (def bob-id (random-uuid))
 (def game
-  {::spec/players [{::spec/uuid  bob-id
+  {::spec/players [{::spec/user-id  bob-id
                     ::spec/name  "Bob Jones"
-                    ::spec/cards [:1 :2 :3 :3 :4]}
-                   {::spec/uuid  (random-uuid)
+                    ::spec/cards {:1 1, :2 1, :3 2, :4 1}}
+                   {::spec/user-id  (random-uuid)
                     ::spec/name  "Jane Eyre"
-                    ::spec/cards [:1 :2 :3 :3 :4 :4 :5 :5]}
-                   {::spec/uuid  (random-uuid)
+                    ::spec/cards {:1 1, :2 1, :3 2, :4 2, :5 2}}
+                   {::spec/user-id  (random-uuid)
                     ::spec/name  "Jerry Foster"
-                    ::spec/cards [:1 :2 :3 :3 :4 :6 :6 :6 :12 :12 :12 :!2]}]
+                    ::spec/cards {:1 1, :2 1, :3 2, :4 1, :6 3, :12 4}}]
    ::spec/play    {::user-id bob-id ::spec/count 2 ::spec/card :3}}
   )
 
 (e/defn Main [ring-request]
   (e/client
     (binding [dom/node js/document.body]
-      (dom/div (dom/props {:class "min-h-screen bg-sky-800 text-white"})
-               (Game. game)))))
+      (dom/div (dom/props {:class "min-h-screen bg-sky-800 text-white h-screen"})
+               (Game. game bob-id)))))
