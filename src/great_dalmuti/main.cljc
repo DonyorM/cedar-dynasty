@@ -23,5 +23,6 @@
 (e/defn Main [ring-request]
   (e/client
     (binding [dom/node js/document.body]
+      #_(Outer.)
       (dom/div (dom/props {:class "min-h-screen bg-sky-800 text-white h-screen"})
                (Game. game bob-id)))))

@@ -7,30 +7,37 @@
             [great-dalmuti.utils :as u]))
 
 (def sensitivity 10)
-(e/defn HandWheel [cards]
+(e/defn HandWheel [cards {:keys [selected on-select]}]
   (e/client
     (let [!offset (atom 0)
           offset (e/watch !offset)
           swipe-start-val (atom nil)
           type-counts (count cards)]
+      (println "onselect is" on-select)
       (dom/div (dom/props {:class "overflow-x-hidden"})
                (dom/div (dom/props {:class "flex px-4 transition-transform"
                                     :style {:transform (str "translateX(-" (* offset 7) "rem)")}})
                         (dom/on! "touchstart" (fn [event]
-                                                (reset! swipe-start-val
-                                                        (.-screenX (first (.-changedTouches event))))))
+                                                  (reset! swipe-start-val
+                                                          (.-screenX (first (.-changedTouches event))))))
                         (dom/on! "touchend"
-                                 (fn [event]
-                                   (let [finalX (.-screenX (first (.-changedTouches event)))
-                                         curr-swipe-start-val @swipe-start-val
-                                         diff (abs (- finalX curr-swipe-start-val))]
-                                     (if (> diff sensitivity)
-                                       (if (< finalX curr-swipe-start-val)
-                                         (when (< offset (dec type-counts))
-                                           (swap! !offset inc))
-                                         (when (> offset 0)
-                                           (swap! !offset dec)))))))
+                                   (fn [event]
+                                     (let [finalX (.-screenX (first (.-changedTouches event)))
+                                           curr-swipe-start-val @swipe-start-val
+                                           diff (abs (- finalX curr-swipe-start-val))]
+                                       (if (> diff sensitivity)
+                                         (if (< finalX curr-swipe-start-val)
+                                           (when (< offset (dec type-counts))
+                                             (swap! !offset inc))
+                                           (when (> offset 0)
+                                             (swap! !offset dec)))))))
                         (e/server
                           (e/for-by key [[card-val card-count] cards]
                                     (e/client
-                                      (Card. card-val card-count)))))))))
+                                      (Card. card-val card-count
+                                             {:selected (= selected card-val)
+                                              :on-click (fn [e]
+                                                          (println "clicked?")
+                                                          #_(when on-select
+                                                                  (println "here?")
+                                                                  (on-select card-val)))})))))))))

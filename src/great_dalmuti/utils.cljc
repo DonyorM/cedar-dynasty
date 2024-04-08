@@ -7,7 +7,8 @@
   [game user-id]
   (->> game
       ::spec/players
-      (some #(= (::spec/user-id %) user-id))))
+      (filter #(= (::spec/user-id %) user-id))
+       first))
 
 (s/fdef user-for-id
         :args (s/cat :game ::spec/game :user-id ::spec/user-id)
