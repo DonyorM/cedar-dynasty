@@ -18,4 +18,8 @@
 (s/def ::player (s/keys :req [::user-id ::name ::cards]))
 (s/def ::play (s/keys :req [::card ::count ::user-id]))
 (s/def ::players (s/coll-of ::player))
-(s/def ::game (s/keys :req [::players ::play]))
+(s/def ::start-player ::user-id)
+(s/def ::skip-count nat-int?)
+
+(s/def ::current-player ::user-id)
+(s/def ::game (s/keys :req [::players ::play ::skip-count ::current-player]))

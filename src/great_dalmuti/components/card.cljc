@@ -11,10 +11,10 @@
 (e/defn Card
   [type count {:keys [selected on-click]}]
   (e/client
-    (println "on-click" on-click)
+    (println "on-click for" type on-click)
     (dom/div
-      (when on-click (dom/on "click" on-click))
-      (when on-click (dom/on "tap" on-click))
+      (when on-click (dom/on! "click" #(on-click type)))
+      (when on-click (dom/on! "tap" #(on-click type)))
       (dom/div (dom/props {:class "w-28 text-center"}) (dom/text (str "Count: " count)))
       (dom/div (dom/props {:class "relative w-40 h-52"})
                (dom/div (dom/props {:class card-class

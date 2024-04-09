@@ -33,11 +33,8 @@
                                              (swap! !offset dec)))))))
                         (e/server
                           (e/for-by key [[card-val card-count] cards]
-                                    (e/client
-                                      (Card. card-val card-count
-                                             {:selected (= selected card-val)
-                                              :on-click (fn [e]
-                                                          (println "clicked?")
-                                                          #_(when on-select
-                                                                  (println "here?")
-                                                                  (on-select card-val)))})))))))))
+                                    (when (> card-count 0)
+                                      (e/client
+                                        (Card. card-val card-count
+                                               {:selected (= selected card-val)
+                                                :on-click on-select}))))))))))
