@@ -7,8 +7,9 @@
 (defn play-valid
   "Checks if a given play is valid compared to an existing play"
   [existing-play new-play]
-  (and (= (::spec/count existing-play) (::spec/count new-play))
-       (<= (.indexOf spec/card-order (::spec/card new-play)) (.indexOf spec/card-order (::spec/card existing-play)))))
+  (or (nil? existing-play)
+      (and (= (::spec/count existing-play) (::spec/count new-play))
+           (<= (.indexOf spec/card-order (::spec/card new-play)) (.indexOf spec/card-order (::spec/card existing-play))))))
 
 (s/fdef play-valid
         :args  (s/cat :existing-play ::spec/play :new-play (s/nilable ::spec/play))
@@ -37,10 +38,14 @@
   [game play]
   (if-not (play-valid-for-game game play)
     game
-    (let [player-index (u/player-index game (::spec/user-id play))]
+    (let [player-index (u/player-index game (::spec/user-id play))
+          next-play-index (if (= player-index (dec (count (::spec/players game))))
+                            0
+                            (inc player-index))]
       (-> game
           (update-in [::spec/players player-index ::spec/cards (::spec/card play)] #(- % (::spec/count play)))
-          (assoc ::spec/play play)))))
+          (assoc ::spec/play play
+                 ::spec/current-player (get-in game [::spec/players next-play-index ::spec/user-id]))))))
 
 (s/fdef make-play
         :args (s/with-gen (s/and (s/cat :game ::spec/game :play ::spec/play)
