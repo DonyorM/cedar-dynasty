@@ -54,7 +54,7 @@
                                :play #:great-dalmuti.spec{:card :8,
                                                           :count 2,
                                                           :user-id #uuid"d30255ec-3683-409b-99cb-9fa19e86458c"},
-                               :current-player #uuid"e4a10430-b06b-4b1b-b328-57b89dbc83a2"})
+                               :current-player #uuid"198e2856-95e6-42c0-93fb-7cd57ca50407"})
 
 (deftest test-play-valid-for-game
   (testing "Valid play"
@@ -62,4 +62,6 @@
 
   (testing "invalid"
     (is (not (sut/play-valid-for-game game {::spec/user-id #uuid"198e2856-95e6-42c0-93fb-7cd57ca50407" ::spec/count 2 ::spec/card :2}))
-        "Not enough cards")))
+        "Not enough cards")
+    (is (not (sut/play-valid-for-game game {::spec/user-id #uuid"d30255ec-3683-409b-99cb-9fa19e86458c" ::spec/count 2 ::spec/card :7}))
+        "Wrong players turn")))

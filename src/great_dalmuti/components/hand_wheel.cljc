@@ -13,8 +13,7 @@
           offset (e/watch !offset)
           swipe-start-val (atom nil)
           type-counts (count cards)]
-      (println "onselect is" on-select)
-      (dom/div (dom/props {:class "overflow-x-hidden"})
+      (dom/div (dom/props {:class "overflow-x-scroll overflow-y-hidden"})
                (dom/div (dom/props {:class "flex px-4 transition-transform"
                                     :style {:transform (str "translateX(-" (* offset 7) "rem)")}})
                         (dom/on! "touchstart" (fn [event]

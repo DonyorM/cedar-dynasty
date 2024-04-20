@@ -11,7 +11,6 @@
 (e/defn Card
   [type count {:keys [selected on-click]}]
   (e/client
-    (println "on-click for" type on-click)
     (dom/div
       (when on-click (dom/on! "click" #(on-click type)))
       (when on-click (dom/on! "tap" #(on-click type)))
