@@ -35,7 +35,8 @@
           player-hand (u/user-for-id game current-player-id)]
       (e/client
         (let [!selected-card (atom nil)
-              selected-card (e/watch !selected-card)]
+              selected-card (e/watch !selected-card)
+              is-current-player (= current-player-id (::spec/current-player game))]
           (dom/div (dom/props {:class "flex flex-col justify-between min-h-screen gap-4"})
                    (dom/div
                      (dom/props {:class "flex items-center w-full justify-center gap-4 flex-wrap"})
@@ -43,18 +44,20 @@
                                (Hand. hand)))
                    (dom/div (dom/props {:class "flex justify-around"})
                             (dom/div (dom/props {:class "w-36 flex flex-col gap-8"})
-                                     (Button. {:text "SKIP"})
+                                     (Button. {:text "SKIP"
+                                               :disabled (not is-current-player)})
                                      (Button. {:text     "PLAY"
-                                               :disabled (not (a/play-valid-for-game
-                                                                game
-                                                                (current-play game current-player-id selected-card)))
+                                               :disabled (not (and is-current-player
+                                                                   (a/play-valid-for-game
+                                                                     game
+                                                                     (current-play game current-player-id selected-card))))
                                                :on-click (e/fn []
-                                                               (e/server
-                                                                 (swap!
-                                                                   !game
-                                                                   #(a/make-play
-                                                                      %
-                                                                      (current-play % current-player-id selected-card)))))}))
+                                                           (e/server
+                                                             (swap!
+                                                               !game
+                                                               #(a/make-play
+                                                                  %
+                                                                  (current-play % current-player-id selected-card)))))}))
                             (Card. (::spec/card play) (::spec/count play) {}))
                    (dom/div (dom/props {:class "flex-grow"}))
                    (when player-hand

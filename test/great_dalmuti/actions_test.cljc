@@ -10,6 +10,10 @@
 
 (defspec-test spec-play-valid-for-game `sut/play-valid-for-game)
 
+(defspec-test spec-add-new-player `sut/upsert-player)
+
+(defspec-test spec-deal-cards `sut/deal-cards)
+
 (def existing-play
   {::spec/count 2 ::spec/card :4 ::spec/user-id #uuid"bdf49cf5-1b94-44aa-8b29-36103f5909ee"})
 
@@ -108,3 +112,81 @@
            (sut/make-play (assoc game ::spec/current-player #uuid"12c21aec-6771-4dd4-be0c-43e3ebb09ede")
                           {::spec/user-id #uuid"12c21aec-6771-4dd4-be0c-43e3ebb09ede" ::spec/count 2 ::spec/card :5}))
         "Current player wraps around to beginning")))
+
+(deftest test-upsert-player
+  (testing "upserting a player"
+    (is (= (::spec/players (sut/upsert-player
+                             (assoc game ::spec/players [#:great-dalmuti.spec{:user-id #uuid"d30255ec-3683-409b-99cb-9fa19e86458c",
+                                                                              :name    "P7WSkvcIQ42yfOvQpFD126Rs1Ud",
+                                                                              :cards   {:1 1, :2 2, :4 4, :12 3}}
+                                                         #:great-dalmuti.spec{:user-id #uuid"198e2856-95e6-42c0-93fb-7cd57ca50407",
+                                                                              :name    "xXN13rR2D6zz8wX6i2O3PWPJQ1",
+                                                                              :cards   {:11 3,
+                                                                                        :4  1,
+                                                                                        :7  2,
+                                                                                        :1  3,
+                                                                                        :9  5,
+                                                                                        :2  1,
+                                                                                        :5  2,
+                                                                                        :3  1,
+                                                                                        :6  0}}])
+                             #uuid"f489f09f-c1fd-4d9a-9ef4-b9164f3fa898"
+                             "Johnny Applessed"))
+           [#:great-dalmuti.spec{:user-id #uuid"d30255ec-3683-409b-99cb-9fa19e86458c",
+                                 :name    "P7WSkvcIQ42yfOvQpFD126Rs1Ud",
+                                 :cards   {:1 1, :2 2, :4 4, :12 3}}
+            #:great-dalmuti.spec{:user-id #uuid"198e2856-95e6-42c0-93fb-7cd57ca50407",
+                                 :name    "xXN13rR2D6zz8wX6i2O3PWPJQ1",
+                                 :cards   {:11 3,
+                                           :4  1,
+                                           :7  2,
+                                           :1  3,
+                                           :9  5,
+                                           :2  1,
+                                           :5  2,
+                                           :3  1,
+                                           :6  0}}
+            #:great-dalmuti.spec{:user-id #uuid"f489f09f-c1fd-4d9a-9ef4-b9164f3fa898",
+                                 :name    "Johnny Applessed",
+                                 :cards   {}}])
+        "adding a new player")
+    (is (= (::spec/players (sut/upsert-player
+                             (assoc game ::spec/players [#:great-dalmuti.spec{:user-id #uuid"d30255ec-3683-409b-99cb-9fa19e86458c",
+                                                                              :name    "P7WSkvcIQ42yfOvQpFD126Rs1Ud",
+                                                                              :cards   {:1 1, :2 2, :4 4, :12 3}}
+                                                         #:great-dalmuti.spec{:user-id #uuid"198e2856-95e6-42c0-93fb-7cd57ca50407",
+                                                                              :name    "xXN13rR2D6zz8wX6i2O3PWPJQ1",
+                                                                              :cards   {:11 3,
+                                                                                        :4  1,
+                                                                                        :7  2,
+                                                                                        :1  3,
+                                                                                        :9  5,
+                                                                                        :2  1,
+                                                                                        :5  2,
+                                                                                        :3  1,
+                                                                                        :6  0}}])
+                             #uuid"198e2856-95e6-42c0-93fb-7cd57ca50407"
+                             "Johnny Applessed"))
+           [#:great-dalmuti.spec{:user-id #uuid"d30255ec-3683-409b-99cb-9fa19e86458c",
+                                 :name    "P7WSkvcIQ42yfOvQpFD126Rs1Ud",
+                                 :cards   {:1 1, :2 2, :4 4, :12 3}}
+            #:great-dalmuti.spec{:user-id #uuid"198e2856-95e6-42c0-93fb-7cd57ca50407",
+                                 :name    "Johnny Applessed",
+                                 :cards   {:11 3,
+                                           :4  1,
+                                           :7  2,
+                                           :1  3,
+                                           :9  5,
+                                           :2  1,
+                                           :5  2,
+                                           :3  1,
+                                           :6  0}}])
+        "updating players name")))
+
+(deftest deal-cards
+  (testing "Deals cards consistently"
+    (is (= (sut/deal-cards #:great-dalmuti.spec{:players [#:great-dalmuti.spec{:user-id #uuid "adb4085d-0c10-49df-8799-a1cd2b293dc6", :name "", :cards {}} #:great-dalmuti.spec{:user-id #uuid "7f2ac39e-895e-46ce-bac6-282f344a9f32", :name "", :cards {}}],
+                                                :play #:great-dalmuti.spec{:card :12, :count 1, :user-id #uuid "adb4085d-0c10-49df-8799-a1cd2b293dc6"}, :current-player #uuid "7f2ac39e-895e-46ce-bac6-282f344a9f32"},
+                           [:12 :12 :12 :12])
+           #:great-dalmuti.spec{:players [#:great-dalmuti.spec{:user-id #uuid "adb4085d-0c10-49df-8799-a1cd2b293dc6", :name "", :cards {:12 2}} #:great-dalmuti.spec{:user-id #uuid "7f2ac39e-895e-46ce-bac6-282f344a9f32", :name "", :cards {:12 2}}],
+                               :play nil, :current-player #uuid "7f2ac39e-895e-46ce-bac6-282f344a9f32"}))))
