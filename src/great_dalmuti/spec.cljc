@@ -69,7 +69,20 @@
                              players-gen))
 (s/def ::start-player ::user-id)
 (s/def ::current-player ::user-id)
-(s/def ::game (s/with-gen (s/and (s/keys :req [::players ::play ::current-player])
+(s/def ::win-order (s/nilable (s/with-gen (s/and (s/coll-of ::user-id :kind vector?)
+                                                 #(is-distinct (map ::user-id %)))
+                                          #(gen/fmap
+                                             (fn [[order size]]
+                                               (take size order))
+                                             (gen/tuple
+                                               (gen/shuffle example-uuid)
+                                               (gen/choose 0 (count example-uuid)))))))
+
+(s/def ::from ::user-id)
+(s/def ::to ::user-id)
+(s/def ::card-debt (s/keys :req [::to ::count]))
+(s/def ::card-debts (s/map-of ::user-id ::card-debt))
+(s/def ::game (s/with-gen (s/and (s/keys :req [::players ::play ::current-player ::win-order ::card-debts])
                                  #(or (nil? (::play %))
                                       (contains-player? (-> % ::play ::user-id) (::players %)))
                                  #(contains-player? (::current-player %) (::players %)))
@@ -84,7 +97,13 @@
                                                                              ::user-id))
                                   ::current-player (-> players
                                                        (nth current-player-index)
-                                                       ::user-id)}))
+                                                       ::user-id)
+                                  ::win-order      (->> players
+                                                   (filter (fn [player] (= 0 (apply + (vals (::cards player))))))
+                                                   ::user-id
+                                                   reverse
+                                                   vec)
+                                  ::card-debts     {}}))
                              (gen/bind (gen/choose 2 (count example-uuid))
                                        (fn [size]
                                          (gen/tuple

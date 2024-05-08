@@ -110,3 +110,34 @@
                    (count (::spec/players ret))))
               #(= (count (-> % :args :game ::spec/players)) (count (-> % :ret ::spec/players)))
               #(nil? (-> % :ret ::spec/play))))
+(defn move-cards
+  [game from-user-id card-map]
+  (let [from-user (u/user-for-id game from-user-id)
+        taxation (-> game ::spec/card-debts (get from-user-id))
+        count-moved (apply + (vals card-map))]
+    (if taxation
+      (if (every? #(<= (% card-map) (-> from-user ::spec/cards %)) (keys card-map))
+        (if (<= count-moved (::spec/count taxation))
+          (let [to-user-id (::spec/to taxation)
+                to-user-loc (u/player-index game to-user-id)
+                from-user-loc (u/player-index game from-user-id)
+                cards-adjusted (reduce (fn [updated-game card]
+                                         (-> updated-game
+                                             (update-in [::spec/players from-user-loc ::spec/cards card] - (get card-map card))
+                                             (update-in [::spec/players to-user-loc ::spec/cards card] #(+ (or %1 0) %2) (get card-map card))))
+                                       game
+                                       (keys card-map))]
+            (if (= count-moved (::spec/count taxation))
+              (update cards-adjusted ::spec/card-debts dissoc from-user-id)
+              (update-in cards-adjusted [::spec/card-debts from-user-id ::spec/count] - count-moved)))
+          (u/set-errors game (str "That's too many cards. You only owe " (::spec/count taxation))))
+        (u/set-errors game "You don't have enough cards to give that"))
+      (u/set-errors game "You don't owe any cards"))))
+
+(s/fdef move-cards
+        :args (s/cat :game ::spec/game :from-user-id ::spec/user-id :card-map (s/map-of ::spec/card (s/and pos-int?
+                                                                                                           #(< % (/
+                                                                                                                   #?(:clj Long/MAX_VALUE)
+                                                                                                                   #?(:cljs (. js/Number -MAX_SAFE_INTEGER))
+                                                                                                                   (count spec/card-order))))))
+        :ret ::spec/game)

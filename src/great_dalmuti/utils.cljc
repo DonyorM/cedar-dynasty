@@ -21,3 +21,11 @@
   (first (keep-indexed
            #(when (= (::spec/user-id %2) user-id) %1)
            (::spec/players game))))
+
+(defn set-errors
+  [game error]
+  (vary-meta game merge {:error error}))
+
+(defn get-errors
+  [game]
+  (:error (meta game)))
