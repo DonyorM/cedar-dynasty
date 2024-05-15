@@ -22,6 +22,14 @@
            #(when (= (::spec/user-id %2) user-id) %1)
            (::spec/players game))))
 
+(defn card-count
+  [cards]
+  (apply + (vals cards)))
+
+(s/fdef card-count
+        :args (s/cat :cards ::spec/cards)
+        :ret nat-int?)
+
 (defn set-errors
   [game error]
   (vary-meta game merge {:error error}))

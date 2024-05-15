@@ -6,6 +6,8 @@
 
 (defspec-test spec-user-for-id `u/user-for-id)
 
+(defspec-test spec-card-count `u/card-count)
+
 (def game {:great-dalmuti.spec/players
            [{:great-dalmuti.spec/user-id #uuid "572c8f38-166d-4e5f-a5ec-b6f125388b5e", :great-dalmuti.spec/name "Bob Jones", :great-dalmuti.spec/cards {:1 1, :2 1, :3 2, :4 1}}
             {:great-dalmuti.spec/user-id #uuid "0be0d1a6-bdf3-49ae-b926-a71f43ba116a", :great-dalmuti.spec/name "Jane Eyre", :great-dalmuti.spec/cards {:1 1, :2 1, :3 2, :4 2, :5 2}}

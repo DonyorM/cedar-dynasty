@@ -17,6 +17,8 @@
 
 (defspec-test spec-move-cards `sut/move-cards)
 
+(defspec-test spec-tax-player `sut/tax-player)
+
 (def existing-play
   {::spec/count 2 ::spec/card :4 ::spec/user-id #uuid"bdf49cf5-1b94-44aa-8b29-36103f5909ee"})
 

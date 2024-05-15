@@ -8,7 +8,8 @@
             [great-dalmuti.components.hand :refer [Hand]]
             [great-dalmuti.components.card :refer [Card]]
             [great-dalmuti.components.button :refer [Button]]
-            [great-dalmuti.components.hand-wheel :refer [HandWheel]]))
+            [great-dalmuti.components.hand-wheel :refer [HandWheel]]
+            [great-dalmuti.components.count-select :refer [CountSelect]]))
 
 (defn player-to-hand
   [player]
@@ -20,11 +21,14 @@
         :ret ::spec/hand)
 
 (defn current-play
-  [game current-player-id selected-card]
-  (when selected-card
-    {::spec/user-id current-player-id
-     ::spec/card    selected-card
-     ::spec/count   (get-in game [::spec/play ::spec/count])}))
+  [game current-player-id selected-card selected-count]
+  (let [current-play-count (get-in game [::spec/play ::spec/count])]
+    (when selected-card
+      {::spec/user-id current-player-id
+       ::spec/card    selected-card
+       ::spec/count   (if current-play-count
+                        current-play-count
+                        selected-count)})))
 
 (e/defn Game [!game current-player-id]
   ;; game is a :spec/game
@@ -36,6 +40,8 @@
       (e/client
         (let [!selected-card (atom nil)
               selected-card (e/watch !selected-card)
+              !selected-count (atom nil)
+              selected-count (e/watch !selected-count)
               is-current-player (= current-player-id (::spec/current-player game))]
           (dom/div (dom/props {:class "flex flex-col justify-between min-h-screen gap-4"})
                    (dom/div
@@ -48,19 +54,25 @@
                                                :disabled (not is-current-player)})
                                      (Button. {:text     "PLAY"
                                                :disabled (not (and is-current-player
+                                                                   (or play selected-count)
                                                                    (a/play-valid-for-game
                                                                      game
-                                                                     (current-play game current-player-id selected-card))))
+                                                                     (current-play game current-player-id selected-card selected-count))))
                                                :on-click (e/fn []
                                                            (e/server
                                                              (swap!
                                                                !game
                                                                #(a/make-play
                                                                   %
-                                                                  (current-play % current-player-id selected-card)))))}))
+                                                                  (current-play % current-player-id selected-card selected-count)))))}))
                             (Card. (::spec/card play) (::spec/count play) {}))
                    (dom/div (dom/props {:class "flex-grow"}))
                    (when player-hand
+                     (when (and selected-card (nil? (::spec/play game)))
+                       (CountSelect.
+                         selected-count
+                         #(reset! !selected-count %)
+                         (get-in player-hand [::spec/cards selected-card])))
                      (HandWheel. (::spec/cards player-hand)
                                  {:selected  selected-card
                                   :on-select (fn [card]

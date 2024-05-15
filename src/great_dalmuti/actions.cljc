@@ -1,6 +1,7 @@
 (ns great-dalmuti.actions
   (:require [clojure.spec.alpha :as s]
             [clojure.set :as sets]
+            [clojure.test.check.generators :as gen]
             [great-dalmuti.spec :as spec]
             [great-dalmuti.utils :as u]))
 (defn ^:private spec-player-in-game [args] (some #{(-> args :play ::spec/user-id)}
@@ -141,3 +142,88 @@
                                                                                                                    #?(:cljs (. js/Number -MAX_SAFE_INTEGER))
                                                                                                                    (count spec/card-order))))))
         :ret ::spec/game)
+
+(defn ^:private get-best-card
+  [player]
+  (first (filter #(> (get (::spec/cards player) % 0) 0) spec/card-order)))
+(defn tax-player
+  [game from-id to-id count]
+  (if (= from-id to-id)
+    (u/set-errors game "Can't move cards from user to themselves")
+    (let [from-player (u/user-for-id game from-id)
+          from-player-index (u/player-index game from-id)
+          to-player-index (u/player-index game to-id)
+          best-card (get-best-card from-player)
+          best-card-count (get (::spec/cards from-player) best-card 0)
+          taxed-count (min count best-card-count)]
+      (if best-card
+        (let [result (-> game
+                         (update-in [::spec/players from-player-index ::spec/cards best-card] - taxed-count)
+                         (update-in [::spec/players to-player-index ::spec/cards best-card] #(+ (or % 0) taxed-count)))
+              final-result (if (= count taxed-count)
+                             result
+                             (tax-player (u/set-errors result nil) from-id to-id (- count taxed-count)))]
+          (if (u/get-errors final-result)
+            (u/set-errors game (u/get-errors final-result))
+            final-result))
+        (u/set-errors game (str "User doesn't have enough cards to tax"))))))
+
+(s/fdef tax-player
+        :args (s/and (s/cat :game ::spec/game :from-id ::spec/user-id :to-id ::spec/user-id :count (s/with-gen pos-int?
+                                                                                                               #(gen/choose 1 2))) ; In a real game you only move one or two cards
+                     (fn [{:keys [game from-id]}]
+                       (some #{from-id} (map ::spec/user-id (::spec/players game))))
+                     (fn [{:keys [game to-id]}]
+                       (some #{to-id} (map ::spec/user-id (::spec/players game)))))
+        :ret ::spec/game
+        :fn (s/or :error #(u/get-errors (:ret %))
+                  :success (s/and (fn [{:keys [args ret]}]
+                                    (= (+ (u/card-count (::spec/cards (u/user-for-id (:game args) (:to-id args))))
+                                          (:count args))
+                                       (u/card-count (::spec/cards (u/user-for-id ret (:to-id args))))))
+                                  (fn [{:keys [args ret]}]
+                                    (= (- (u/card-count (::spec/cards (u/user-for-id (:game args) (:from-id args))))
+                                          (:count args))
+                                       (u/card-count (::spec/cards (u/user-for-id ret (:from-id args)))))))))
+
+(def GREAT_GIVE_COUNT 2)
+(def LESSER_GIVE_COUNT 1)
+(defn start-new-round
+  [game]
+  (let [win-order (::spec/win-order game)]
+    (if (or (not= (count win-order) (count (::spec/players game)))
+            (every? #(some #{%} win-order) (map ::spec/user-id (::spec/players game))))
+      (u/set-errors game "Win order not specified")
+      (-> game
+          (assoc ::spec/players (sort
+                                  #(.indexOf win-order (::spec/user-id %))
+                                  (::spec/players game))
+                 ::spec/card-debts {(first win-order) {::spec/to (last win-order) ::spec/count GREAT_GIVE_COUNT},
+                                    (second win-order) {::spec/to (nth win-order (- (count win-order) 2)) ::spec/count LESSER_GIVE_COUNT}}
+                 ::spec/win-order []
+                 ::spec/current-player nil)
+          deal-cards
+          (tax-player (last win-order) (first win-order) GREAT_GIVE_COUNT)
+          (tax-player (nth win-order (- (count win-order) 2)) (second win-order) LESSER_GIVE_COUNT)))))
+
+(defn ^:private check-best-card
+  [winner loser]
+  (let [winner-card (get-best-card winner)
+        loser-card (get-best-card loser)]
+    (and winner-card
+         (or (not loser-card)
+             (<= (.indexOf spec/card-order winner-card)
+                 (.indexOf spec/card-order loser-card))))))
+(s/fdef start-new-round
+        :args (s/cat :game ::spec/game)
+        :ret ::spec/game
+        :fn (s/or :error #(u/get-errors (:ret %))
+                  :success (s/and (fn [{:keys [args ret]}]
+                                    (every? identity (map #(= %1 (::spec/user-id %2))
+                                                          (-> args :game ::spec/win-order)
+                                                          (::spec/win-order ret))))
+                                  (fn [{:keys [ret]}]
+                                    (check-best-card (-> ret ::spec/players first) (-> ret ::spec/players last)))
+                                  (fn [{:keys [ret]}]
+                                    (check-best-card (-> ret ::spec/players second) (-> ret ::spec/players (#(nth % (- (count %) 2))))))
+                                  #(= (count (-> % :ret ::spec/card-debts)) 2))))

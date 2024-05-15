@@ -22,7 +22,8 @@
                          {::spec/user-id (random-uuid)
                           ::spec/name    "Jerry Foster"
                           ::spec/cards   {:1 1, :2 1, :3 2, :4 1, :6 3, :12 4}}]
-         ::spec/play    {::user-id bob-id ::spec/count 2 ::spec/card :3}})
+         ::spec/current-player bob-id
+         ::spec/play    nil #_{::user-id bob-id ::spec/count 2 ::spec/card :3}})
   )
 
 (defn new-game [current-player-id current-player-name]
