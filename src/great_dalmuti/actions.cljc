@@ -33,6 +33,20 @@
                           spec/player-in-game-gen)
         :ret boolean?)
 
+(defn- find-next-player-index
+  [players player-index]
+  (->> (range (count players))
+       (map #(mod (inc (+ player-index %)) (count players)))
+       (filter #(> (u/card-count (get-in players [% ::spec/cards])) 0))
+       first))
+
+(defn- check-for-winner
+  [game player-index]
+  (if (= 0 (u/card-count (get-in game [::spec/players player-index ::spec/cards])))
+    (let [user-id (get-in game [::spec/players player-index ::spec/user-id])]
+      (update game ::spec/win-order conj user-id))
+    game))
+
 (defn make-play
   "Takes a game and a given play and adjust the game to have that play made.
 
@@ -41,13 +55,12 @@
   (if-not (play-valid-for-game game play)
     game
     (let [player-index (u/player-index game (::spec/user-id play))
-          next-play-index (if (= player-index (dec (count (::spec/players game))))
-                            0
-                            (inc player-index))]
+          next-play-index (find-next-player-index (::spec/players game) player-index)]
       (-> game
           (update-in [::spec/players player-index ::spec/cards (::spec/card play)] #(- % (::spec/count play)))
           (assoc ::spec/play play
-                 ::spec/current-player (get-in game [::spec/players next-play-index ::spec/user-id]))))))
+                 ::spec/current-player (get-in game [::spec/players next-play-index ::spec/user-id]))
+          (check-for-winner player-index)))))
 
 (s/fdef make-play
         :args (s/with-gen (s/and (s/cat :game ::spec/game :play ::spec/play)
@@ -72,7 +85,7 @@
                   (::spec/players ret)))))
 
 (def DEFAULT_DECK (vec (apply concat
-                      (map #(repeat % (keyword (str %))) (range 1 13)))))
+                              (map #(repeat % (keyword (str %))) (range 1 13)))))
 (defn deal-cards
   ([game]
    (deal-cards game (shuffle DEFAULT_DECK)))
@@ -198,7 +211,7 @@
           (assoc ::spec/players (sort
                                   #(.indexOf win-order (::spec/user-id %))
                                   (::spec/players game))
-                 ::spec/card-debts {(first win-order) {::spec/to (last win-order) ::spec/count GREAT_GIVE_COUNT},
+                 ::spec/card-debts {(first win-order)  {::spec/to (last win-order) ::spec/count GREAT_GIVE_COUNT},
                                     (second win-order) {::spec/to (nth win-order (- (count win-order) 2)) ::spec/count LESSER_GIVE_COUNT}}
                  ::spec/win-order []
                  ::spec/current-player nil)
@@ -227,3 +240,21 @@
                                   (fn [{:keys [ret]}]
                                     (check-best-card (-> ret ::spec/players second) (-> ret ::spec/players (#(nth % (- (count %) 2))))))
                                   #(= (count (-> % :ret ::spec/card-debts)) 2))))
+
+(defn skip
+  [game]
+  (let [current-user-index (u/player-index game (::spec/current-player game))
+        next-player-id (get-in game [::spec/players (find-next-player-index (::spec/players game) current-user-index) ::spec/user-id])
+        result-game (assoc game ::spec/current-player next-player-id)]
+    (if (and next-player-id
+             (not= next-player-id (::spec/current-player game)))
+      (if (= (get-in result-game [::spec/play ::spec/user-id]) next-player-id)
+        (assoc result-game ::spec/play nil)
+        result-game)
+      (u/set-errors game "No valid player to skip to"))))
+
+(s/fdef skip
+        :args (s/cat :game ::spec/game)
+        :ret ::spec/game
+        :fn (s/or :success #(not= (-> % :args :game ::spec/current-player) (-> % :ret ::spec/current-player))
+                  :error #(u/get-errors (:ret %))))

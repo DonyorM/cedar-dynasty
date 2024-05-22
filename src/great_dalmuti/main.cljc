@@ -12,18 +12,21 @@
 ;; Saving this file will automatically recompile and update in your browser
 
 (def bob-id (random-uuid))
+(def jane-id (random-uuid))
+(def jerry-id (random-uuid))
 (def !game
   (atom {::spec/players [{::spec/user-id bob-id
                           ::spec/name    "Bob Jones"
                           ::spec/cards   {:1 1, :2 3, :3 2, :4 1}}
-                         {::spec/user-id (random-uuid)
+                         {::spec/user-id jane-id
                           ::spec/name    "Jane Eyre"
                           ::spec/cards   {:1 1, :2 1, :3 2, :4 2, :5 2}}
-                         {::spec/user-id (random-uuid)
+                         {::spec/user-id jerry-id
                           ::spec/name    "Jerry Foster"
                           ::spec/cards   {:1 1, :2 1, :3 2, :4 1, :6 3, :12 4}}]
          ::spec/current-player bob-id
-         ::spec/play    nil #_{::user-id bob-id ::spec/count 2 ::spec/card :3}})
+         ::spec/play    nil #_{::user-id bob-id ::spec/count 2 ::spec/card :3}
+         ::spec/win-order [bob-id jerry-id jane-id]})
   )
 
 (defn new-game [current-player-id current-player-name]

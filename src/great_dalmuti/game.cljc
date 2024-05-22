@@ -36,7 +36,8 @@
     (let [game (e/watch !game)
           hands (map player-to-hand (::spec/players game))
           play (::spec/play game)
-          player-hand (u/user-for-id game current-player-id)]
+          player-hand (u/user-for-id game current-player-id)
+          game-over (= (count (::spec/players game)) (count (::spec/win-order game)))]
       (e/client
         (let [!selected-card (atom nil)
               selected-card (e/watch !selected-card)
@@ -48,24 +49,32 @@
                      (dom/props {:class "flex items-center w-full justify-center gap-4 flex-wrap"})
                      (e/for-by ::spec/user-id [hand hands]
                                (Hand. hand)))
-                   (dom/div (dom/props {:class "flex justify-around"})
-                            (dom/div (dom/props {:class "w-36 flex flex-col gap-8"})
-                                     (Button. {:text "SKIP"
-                                               :disabled (not is-current-player)})
-                                     (Button. {:text     "PLAY"
-                                               :disabled (not (and is-current-player
-                                                                   (or play selected-count)
-                                                                   (a/play-valid-for-game
-                                                                     game
-                                                                     (current-play game current-player-id selected-card selected-count))))
-                                               :on-click (e/fn []
-                                                           (e/server
-                                                             (swap!
-                                                               !game
-                                                               #(a/make-play
-                                                                  %
-                                                                  (current-play % current-player-id selected-card selected-count)))))}))
-                            (Card. (::spec/card play) (::spec/count play) {}))
+                   (if game-over
+                     (dom/div (dom/props {:class "flex justify-around"})
+                              (dom/text "GAME OVER"))
+                     (dom/div (dom/props {:class "flex justify-around"})
+                              (dom/div (dom/props {:class "w-36 flex flex-col gap-8"})
+                                       (Button. {:text     "SKIP"
+                                                 :disabled (not is-current-player)
+                                                 :on-click (e/fn []
+                                                             (e/server
+                                                               (swap!
+                                                                 !game
+                                                                 a/skip)))})
+                                       (Button. {:text     "PLAY"
+                                                 :disabled (not (and is-current-player
+                                                                     (or play selected-count)
+                                                                     (a/play-valid-for-game
+                                                                       game
+                                                                       (current-play game current-player-id selected-card selected-count))))
+                                                 :on-click (e/fn []
+                                                             (e/server
+                                                               (swap!
+                                                                 !game
+                                                                 #(a/make-play
+                                                                    %
+                                                                    (current-play % current-player-id selected-card selected-count)))))}))
+                              (Card. (::spec/card play) (::spec/count play) {})))
                    (dom/div (dom/props {:class "flex-grow"}))
                    (when player-hand
                      (when (and selected-card (nil? (::spec/play game)))
@@ -76,4 +85,5 @@
                      (HandWheel. (::spec/cards player-hand)
                                  {:selected  selected-card
                                   :on-select (fn [card]
+                                               (reset! !selected-count nil)
                                                (reset! !selected-card card))}))))))))

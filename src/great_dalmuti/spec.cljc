@@ -88,7 +88,7 @@
                                  #(contains-player? (::current-player %) (::players %)))
                           #(gen/fmap
                              (fn [[players play index]]
-                               (let [current-player-index (if (= (dec (count players)) index)
+                               (let [current-player-index (if (= (count players) (inc index))
                                                             0
                                                             (inc index))]
                                  {::players        players

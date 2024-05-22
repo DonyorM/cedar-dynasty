@@ -19,6 +19,8 @@
 
 (defspec-test spec-tax-player `sut/tax-player)
 
+(defspec-test spec-skip `sut/skip)
+
 (def existing-play
   {::spec/count 2 ::spec/card :4 ::spec/user-id #uuid"bdf49cf5-1b94-44aa-8b29-36103f5909ee"})
 
@@ -118,7 +120,23 @@
                (assoc ::spec/play {::spec/user-id #uuid"12c21aec-6771-4dd4-be0c-43e3ebb09ede" ::spec/count 2 ::spec/card :5}))
            (sut/make-play (assoc game ::spec/current-player #uuid"12c21aec-6771-4dd4-be0c-43e3ebb09ede")
                           {::spec/user-id #uuid"12c21aec-6771-4dd4-be0c-43e3ebb09ede" ::spec/count 2 ::spec/card :5}))
-        "Current player wraps around to beginning")))
+        "Current player wraps around to beginning")
+
+
+    (is (= #uuid"198e2856-95e6-42c0-93fb-7cd57ca50407"
+           (::spec/current-player (sut/make-play (-> game
+                                                     (assoc-in [::spec/players 0 ::spec/cards] {})
+                                                     (assoc ::spec/win-order [#uuid"d30255ec-3683-409b-99cb-9fa19e86458c"])
+                                                     (assoc ::spec/current-player #uuid"12c21aec-6771-4dd4-be0c-43e3ebb09ede"))
+                                                 {::spec/user-id #uuid"12c21aec-6771-4dd4-be0c-43e3ebb09ede" ::spec/count 2 ::spec/card :5})))
+        "Skips player with no cards")
+
+    (is (= [#uuid"12c21aec-6771-4dd4-be0c-43e3ebb09ede"]
+           (::spec/win-order (sut/make-play (-> game
+                                                (assoc-in [::spec/players 2 ::spec/cards] {:5 2})
+                                                (assoc ::spec/current-player #uuid"12c21aec-6771-4dd4-be0c-43e3ebb09ede"))
+                                            {::spec/user-id #uuid"12c21aec-6771-4dd4-be0c-43e3ebb09ede" ::spec/count 2 ::spec/card :5})))
+        "Adds user with 0 cards to win list")))
 
 (deftest test-upsert-player
   (testing "upserting a player"
@@ -239,3 +257,17 @@
                  (sut/move-cards (assoc game ::spec/card-debts {to-player {::spec/to from-player ::spec/count 2}})
                                  from-player
                                  {:12 2}))))))))
+
+(deftest skip
+  (is (= (assoc game ::spec/current-player #uuid "12c21aec-6771-4dd4-be0c-43e3ebb09ede")
+         (sut/skip game))
+      "Skips an ordinary player")
+  (is (= (assoc game ::spec/current-player #uuid"d30255ec-3683-409b-99cb-9fa19e86458c"
+                     ::spec/play nil)
+         (sut/skip (assoc game ::spec/current-player #uuid"12c21aec-6771-4dd4-be0c-43e3ebb09ede")))
+      "Resets play if reaching original player")
+  (let [start-game (assoc-in game [::spec/players 2 ::spec/cards] {})]
+    (is (= (assoc start-game ::spec/current-player #uuid"d30255ec-3683-409b-99cb-9fa19e86458c"
+                             ::spec/play nil)
+           (sut/skip start-game))
+        "Jumps over players with no cards")))
