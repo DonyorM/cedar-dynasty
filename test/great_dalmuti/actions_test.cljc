@@ -21,6 +21,8 @@
 
 (defspec-test spec-skip `sut/skip)
 
+(defspec-test spec-start-new-round `sut/start-new-round)
+
 (def existing-play
   {::spec/count 2 ::spec/card :4 ::spec/user-id #uuid"bdf49cf5-1b94-44aa-8b29-36103f5909ee"})
 
@@ -81,6 +83,10 @@
     (is (not (sut/play-valid-for-game game {::spec/user-id #uuid"d30255ec-3683-409b-99cb-9fa19e86458c" ::spec/count 2 ::spec/card :7}))
         "Wrong players turn")))
 
+(def game-final-player )
+
+(def after-play-expectation)
+
 (deftest test-make-play
   (testing "Invalid play"
     (is (= game (sut/make-play game {::spec/user-id #uuid"198e2856-95e6-42c0-93fb-7cd57ca50407" ::spec/count 2 ::spec/card :2}))))
@@ -122,6 +128,118 @@
                           {::spec/user-id #uuid"12c21aec-6771-4dd4-be0c-43e3ebb09ede" ::spec/count 2 ::spec/card :5}))
         "Current player wraps around to beginning")
 
+    (let [given-game #:great-dalmuti.spec{:players
+                                          [#:great-dalmuti.spec{:user-id
+                                                                #uuid "73d37285-326e-4d95-bab7-caa930c81e27",
+                                                                :name "donyor",
+                                                                :cards
+                                                                {:12 0,
+                                                                 :10 0,
+                                                                 :8 0,
+                                                                 :7 0,
+                                                                 :11 0,
+                                                                 :6 0,
+                                                                 :5 0}}
+                                           #:great-dalmuti.spec{:user-id
+                                                                #uuid "417acb5d-3d48-4104-ad6b-24df9092d681",
+                                                                :name "dsa",
+                                                                :cards
+                                                                {:12 5,
+                                                                 :11 2,
+                                                                 :10 0,
+                                                                 :4 0,
+                                                                 :7 0,
+                                                                 :8 0,
+                                                                 :9 0,
+                                                                 :2 0,
+                                                                 :5 2,
+                                                                 :3 0,
+                                                                 :6 0}}
+                                           #:great-dalmuti.spec{:user-id
+                                                                #uuid "8e082568-abc5-41e5-a55f-92b4062e1a7f",
+                                                                :name "bob",
+                                                                :cards
+                                                                {:12 0,
+                                                                 :11 0,
+                                                                 :10 0,
+                                                                 :4 0,
+                                                                 :7 0,
+                                                                 :1 0,
+                                                                 :9 0,
+                                                                 :2 0,
+                                                                 :5 1,
+                                                                 :3 0,
+                                                                 :6 0}}],
+                                          :play
+                                          #:great-dalmuti.spec{:user-id
+                                                               #uuid "417acb5d-3d48-4104-ad6b-24df9092d681",
+                                                               :card :6,
+                                                               :count 1},
+                                          :current-player
+                                          #uuid "8e082568-abc5-41e5-a55f-92b4062e1a7f",
+                                          :win-order
+                                          [#uuid "73d37285-326e-4d95-bab7-caa930c81e27"]}
+          expected-game #:great-dalmuti.spec{:players
+                                             [#:great-dalmuti.spec{:user-id
+                                                                   #uuid "73d37285-326e-4d95-bab7-caa930c81e27",
+                                                                   :name "donyor",
+                                                                   :cards
+                                                                   {:12 0,
+                                                                    :10 0,
+                                                                    :8  0,
+                                                                    :7  0,
+                                                                    :11 0,
+                                                                    :6  0,
+                                                                    :5  0}}
+                                              #:great-dalmuti.spec{:user-id
+                                                                   #uuid "417acb5d-3d48-4104-ad6b-24df9092d681",
+                                                                   :name "dsa",
+                                                                   :cards
+                                                                   {:12 5,
+                                                                    :11 2,
+                                                                    :10 0,
+                                                                    :4  0,
+                                                                    :7  0,
+                                                                    :8  0,
+                                                                    :9  0,
+                                                                    :2  0,
+                                                                    :5  2,
+                                                                    :3  0,
+                                                                    :6  0}}
+                                              #:great-dalmuti.spec{:user-id
+                                                                   #uuid "8e082568-abc5-41e5-a55f-92b4062e1a7f",
+                                                                   :name "bob",
+                                                                   :cards
+                                                                   {:12 0,
+                                                                    :11 0,
+                                                                    :10 0,
+                                                                    :4  0,
+                                                                    :7  0,
+                                                                    :1  0,
+                                                                    :9  0,
+                                                                    :2  0,
+                                                                    :5  0,
+                                                                    :3  0,
+                                                                    :6  0}}],
+                                             :play
+                                             #:great-dalmuti.spec{:user-id
+                                                                  #uuid "8e082568-abc5-41e5-a55f-92b4062e1a7f",
+                                                                  :card  :5,
+                                                                  :count 1},
+                                             :current-player
+                                             #uuid "417acb5d-3d48-4104-ad6b-24df9092d681",
+                                             :win-order
+                                             [#uuid "73d37285-326e-4d95-bab7-caa930c81e27"
+                                              #uuid "8e082568-abc5-41e5-a55f-92b4062e1a7f"
+                                              #uuid "417acb5d-3d48-4104-ad6b-24df9092d681"]}
+          given-play #:great-dalmuti.spec{:user-id
+                                          #uuid "8e082568-abc5-41e5-a55f-92b4062e1a7f",
+                                          :card  :5,
+                                          :count 1}]
+      (is (= expected-game
+             (sut/make-play given-game given-play))
+          "Handle situation where player loses"))
+
 
     (is (= #uuid"198e2856-95e6-42c0-93fb-7cd57ca50407"
            (::spec/current-player (sut/make-play (-> game
@@ -136,7 +254,12 @@
                                                 (assoc-in [::spec/players 2 ::spec/cards] {:5 2})
                                                 (assoc ::spec/current-player #uuid"12c21aec-6771-4dd4-be0c-43e3ebb09ede"))
                                             {::spec/user-id #uuid"12c21aec-6771-4dd4-be0c-43e3ebb09ede" ::spec/count 2 ::spec/card :5})))
-        "Adds user with 0 cards to win list")))
+        "Adds user with 0 cards to win list")
+
+    (let [starting-situation (-> game
+                                 (assoc-in [::spec/players 1 ::spec/cards] {:1 1})
+                                 (assoc-in [::spec/players 2 ::spec/cards] {})
+                                 (assoc ::spec/win-order []))])))
 
 (deftest test-upsert-player
   (testing "upserting a player"

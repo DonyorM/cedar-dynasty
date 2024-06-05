@@ -47,6 +47,16 @@
       (update game ::spec/win-order conj user-id))
     game))
 
+(defn- check-for-loser
+  [game]
+  (let [losers (->> game
+                    ::spec/players
+                    (filter #(> (u/card-count (::spec/cards %)) 0)))]
+    (println losers)
+    (if (= (count losers) 1)
+      (update game ::spec/win-order conj (::spec/user-id (first losers)))
+      game)))
+
 (defn make-play
   "Takes a game and a given play and adjust the game to have that play made.
 
@@ -60,7 +70,8 @@
           (update-in [::spec/players player-index ::spec/cards (::spec/card play)] #(- % (::spec/count play)))
           (assoc ::spec/play play
                  ::spec/current-player (get-in game [::spec/players next-play-index ::spec/user-id]))
-          (check-for-winner player-index)))))
+          (check-for-winner player-index)
+          check-for-loser))))
 
 (s/fdef make-play
         :args (s/with-gen (s/and (s/cat :game ::spec/game :play ::spec/play)
@@ -204,11 +215,12 @@
 (defn start-new-round
   [game]
   (let [win-order (::spec/win-order game)]
+
     (if (or (not= (count win-order) (count (::spec/players game)))
-            (every? #(some #{%} win-order) (map ::spec/user-id (::spec/players game))))
+            (some #(not (some #{%} win-order)) (map ::spec/user-id (::spec/players game))))
       (u/set-errors game "Win order not specified")
       (-> game
-          (assoc ::spec/players (sort
+          (assoc ::spec/players (sort-by
                                   #(.indexOf win-order (::spec/user-id %))
                                   (::spec/players game))
                  ::spec/card-debts {(first win-order)  {::spec/to (last win-order) ::spec/count GREAT_GIVE_COUNT},

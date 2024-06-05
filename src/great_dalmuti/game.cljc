@@ -1,5 +1,6 @@
 (ns great-dalmuti.game
   (:require [clojure.spec.alpha :as s]
+            [clojure.string :as string]
             [great-dalmuti.utils :as u]
             [great-dalmuti.actions :as a]
             [hyperfiddle.electric :as e]
@@ -37,7 +38,8 @@
           hands (map player-to-hand (::spec/players game))
           play (::spec/play game)
           player-hand (u/user-for-id game current-player-id)
-          game-over (= (count (::spec/players game)) (count (::spec/win-order game)))]
+          game-over (= (count (::spec/players game)) (count (::spec/win-order game)))
+          required-taxes (seq (filter #(> (::spec/count %) 0) (vals (::spec/card-debts game))))]
       (e/client
         (let [!selected-card (atom nil)
               selected-card (e/watch !selected-card)
@@ -45,14 +47,39 @@
               selected-count (e/watch !selected-count)
               is-current-player (= current-player-id (::spec/current-player game))]
           (dom/div (dom/props {:class "flex flex-col justify-between min-h-screen gap-4"})
+                   (when-let [errors (u/get-errors game)]
+                     (dom/div (dom/text errors)))
                    (dom/div
                      (dom/props {:class "flex items-center w-full justify-center gap-4 flex-wrap"})
                      (e/for-by ::spec/user-id [hand hands]
                                (Hand. hand)))
-                   (if game-over
-                     (dom/div (dom/props {:class "flex justify-around"})
-                              (dom/text "GAME OVER"))
-                     (dom/div (dom/props {:class "flex justify-around"})
+                   (cond
+                     game-over (dom/div (dom/props {:class "flex justify-around flex-col items-center gap-4"})
+                       (dom/p (dom/text "GAME OVER"))
+                       (Button.
+                         {:text "New Round"
+                          :on-click (e/fn []
+                                      (e/server
+                                        (swap! !game a/start-new-round)))}))
+                     required-taxes (if-let [user-debt (get (::spec/card-debts game) current-player-id)]
+                                      (dom/div (dom/props {:class "flex justify-around flex-col items-center gap-4"})
+                                        (dom/p (dom/text "Give " (::spec/count user-debt) " card(s)"))
+                                        (Button.
+                                          {:text "GIVE CARD"
+                                           :disabled (or (not selected-card)
+                                                         (= 0 (get-in player-hand [::spec/cards selected-card] 0)))
+                                           :on-click (e/fn []
+                                                       (e/server
+                                                         (swap! !game
+                                                                a/move-cards
+                                                                current-player-id
+                                                                {selected-card 1})))}))
+                                      (dom/div (dom/props {:class "flex justify-around"})
+                                        (dom/text "Waiting for "
+                                                  (string/join ", " (map (comp ::spec/name (partial u/user-for-id game))
+                                                                        (keys (::spec/card-debts game))))
+                                                  " to give cards")))
+                     :default (dom/div (dom/props {:class "flex justify-around "})
                               (dom/div (dom/props {:class "w-36 flex flex-col gap-8"})
                                        (Button. {:text     "SKIP"
                                                  :disabled (not is-current-player)
@@ -77,7 +104,7 @@
                               (Card. (::spec/card play) (::spec/count play) {})))
                    (dom/div (dom/props {:class "flex-grow"}))
                    (when player-hand
-                     (when (and selected-card (nil? (::spec/play game)))
+                     (when (and selected-card (nil? (::spec/play game)) (not required-taxes))
                        (CountSelect.
                          selected-count
                          #(reset! !selected-count %)

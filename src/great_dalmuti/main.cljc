@@ -38,7 +38,7 @@
 
 (e/defn Main [ring-request]
   (e/server
-    (let [!current-player (atom bob-id)
+    (let [!current-player (atom nil)
           current-player-id (e/watch !current-player)
           game (e/watch !game)]
       (e/client
@@ -47,7 +47,7 @@
                    (dom/div (dom/props {:class "flex justify-center gap-6 w-full"})
                             (Button. {:text "Re-deal"
                                       :on-click (e/fn []
-                                                  (e/server (swap! !game a/deal-cards)))})
+                                                  (e/server (swap! !game a/deal-cards [:1 :2 :2 :3 :3 :3])))})
                             (Button. {:text "New Game"
                                       :on-click (e/fn []
                                                   (e/server (reset! !game (new-game current-player-id (::spec/name (u/user-for-id game current-player-id))))))}))
