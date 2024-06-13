@@ -9,12 +9,10 @@
             [great-dalmuti.login :refer [Login]]
             [great-dalmuti.components.button :refer [Button]]))
 
-;; Saving this file will automatically recompile and update in your browser
-
 (def bob-id (random-uuid))
 (def jane-id (random-uuid))
 (def jerry-id (random-uuid))
-(def !game
+(defonce !game
   (atom {::spec/players [{::spec/user-id bob-id
                           ::spec/name    "Bob Jones"
                           ::spec/cards   {:1 1, :2 3, :3 2, :4 1}}
@@ -34,7 +32,8 @@
                     ::spec/name current-player-name
                     ::spec/cards {}}]
    ::spec/play nil
-   ::spec/current-player current-player-id})
+   ::spec/current-player current-player-id
+   ::spec/win-order []})
 
 (e/defn Main [ring-request]
   (e/server
@@ -47,7 +46,7 @@
                    (dom/div (dom/props {:class "flex justify-center gap-6 w-full"})
                             (Button. {:text "Re-deal"
                                       :on-click (e/fn []
-                                                  (e/server (swap! !game a/deal-cards [:1 :2 :2 :3 :3 :3])))})
+                                                  (e/server (swap! !game a/deal-cards [:1 :2 :2 :3 :3 :3 :4 :4])))})
                             (Button. {:text "New Game"
                                       :on-click (e/fn []
                                                   (e/server (reset! !game (new-game current-player-id (::spec/name (u/user-for-id game current-player-id))))))}))

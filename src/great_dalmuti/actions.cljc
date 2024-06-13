@@ -226,7 +226,7 @@
                  ::spec/card-debts {(first win-order)  {::spec/to (last win-order) ::spec/count GREAT_GIVE_COUNT},
                                     (second win-order) {::spec/to (nth win-order (- (count win-order) 2)) ::spec/count LESSER_GIVE_COUNT}}
                  ::spec/win-order []
-                 ::spec/current-player nil)
+                 ::spec/current-player (first win-order))
           deal-cards
           (tax-player (last win-order) (first win-order) GREAT_GIVE_COUNT)
           (tax-player (nth win-order (- (count win-order) 2)) (second win-order) LESSER_GIVE_COUNT)))))
@@ -260,9 +260,11 @@
         result-game (assoc game ::spec/current-player next-player-id)]
     (if (and next-player-id
              (not= next-player-id (::spec/current-player game)))
-      (if (= (get-in result-game [::spec/play ::spec/user-id]) next-player-id)
-        (assoc result-game ::spec/play nil)
-        result-game)
+      (let [play-user-id (get-in result-game [::spec/play ::spec/user-id])]
+        (if (or (= play-user-id next-player-id)
+                (some #{play-user-id} (::spec/win-order result-game)))
+          (assoc result-game ::spec/play nil)
+          result-game))
       (u/set-errors game "No valid player to skip to"))))
 
 (s/fdef skip

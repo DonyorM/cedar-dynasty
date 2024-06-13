@@ -4,7 +4,7 @@
             [hyperfiddle.electric-dom2 :as dom]
             [great-dalmuti.components.button :refer [Button]]))
 
-(def logged-in-users (atom {}))
+(defonce logged-in-users (atom {}))
 (e/defn Login [set-current-user]
   (e/client
     (let [!username (atom "")

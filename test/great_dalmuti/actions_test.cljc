@@ -240,7 +240,6 @@
              (sut/make-play given-game given-play))
           "Handle situation where player loses"))
 
-
     (is (= #uuid"198e2856-95e6-42c0-93fb-7cd57ca50407"
            (::spec/current-player (sut/make-play (-> game
                                                      (assoc-in [::spec/players 0 ::spec/cards] {})
@@ -393,4 +392,14 @@
     (is (= (assoc start-game ::spec/current-player #uuid"d30255ec-3683-409b-99cb-9fa19e86458c"
                              ::spec/play nil)
            (sut/skip start-game))
-        "Jumps over players with no cards")))
+        "Jumps over players with no cards"))
+  (let [given-game (-> game
+                       (assoc-in [::spec/players 0 ::spec/cards] {})
+                       (update ::spec/win-order conj (get-in game [::spec/players 0 ::spec/user-id]))
+                       (assoc ::spec/current-player #uuid"12c21aec-6771-4dd4-be0c-43e3ebb09ede"))
+        expected-game (-> given-game
+                          (assoc ::spec/current-player #uuid"198e2856-95e6-42c0-93fb-7cd57ca50407")
+                          (assoc ::spec/play nil))]
+    (is (= expected-game
+           (sut/skip given-game))
+        "Moves to next player if original player has no cards")))
