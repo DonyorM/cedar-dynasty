@@ -37,6 +37,8 @@
 
 (e/defn Main [ring-request]
   (e/server
+    ;(clojure.pprint/pprint ring-request)
+    ;(println (-> ring-request :oauth2/access-tokens))
     (let [!current-player (atom nil)
           current-player-id (e/watch !current-player)
           game (e/watch !game)]

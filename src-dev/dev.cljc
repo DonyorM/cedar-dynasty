@@ -5,12 +5,18 @@
     #?(:clj [great-dalmuti.server-jetty :as jetty])
     #?(:clj [shadow.cljs.devtools.api :as shadow])
     #?(:clj [shadow.cljs.devtools.server :as shadow-server])
-    #?(:clj [clojure.tools.logging :as log])))
+    #?(:clj [clojure.tools.logging :as log])
+    #?(:clj [nrepl.server :as nrepl])))
+
 
 (comment (-main)) ; repl entrypoint
 
 #?(:clj ;; Server Entrypoint
    (do
+     (def NREPL_PORT (or (System/getenv "NREPL_PORT") 9043))
+     (def NREPL_HOST (or (System/getenv "NREPL_HOST") "0.0.0.0"))
+     (log/info (str "Starting nrepl server on port " NREPL_HOST ":" NREPL_PORT "..."))
+     (defonce nrepl-server (nrepl/start-server :port NREPL_PORT :bind NREPL_HOST))
      (def config
        {:host "0.0.0.0"
         :port 8090
@@ -24,15 +30,14 @@
 
        (shadow-server/start!)
        (shadow/watch :dev)
-       (comment (shadow-server/stop!))
+       (comment (hadow-server/stop!))
 
        (def server (jetty/start-server!
                      (fn [ring-request]
                        (e/boot-server {} great-dalmuti.main/Main ring-request))
                      config))
 
-       (comment (.stop server))
-       )))
+       (comment (.stop server)))))
 
 #?(:cljs ;; Client Entrypoint
    (do

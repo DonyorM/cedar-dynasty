@@ -1,0 +1,27 @@
+version: '3'
+services:
+  dynamodb:
+    image: amazon/dynamodb-local
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./data:/data
+    command: "-jar DynamoDBLocal.jar -sharedDb -dbPath /data"
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8090:8090"
+      - "9043:9043"
+      - "9630:9630"
+    volumes:
+      - ".:/app"
+    environment:
+      - DYNAMODB_ENDPOINT=http://dynamodb:8000
+      - AWS_ACCESS_KEY="thisisirrelevant"
+      - AWS_SECRET_KEY="thisisirrelevant"
+      - COGNITO_CLIENT_ID=${COGNITO_CLIENT_ID}
+      - COGNITO_CLIENT_SECRET=${COGNITO_CLIENT_SECRET}
+      - COGNITO_UI_URL=${COGNITO_UI_URL}
+

@@ -4,11 +4,16 @@
            org.clojure/clojurescript      {:mvn/version "1.11.121"}
            org.clojure/tools.logging      {:mvn/version "1.2.4"}
            ch.qos.logback/logback-classic {:mvn/version "1.4.14"}
-           com.hypalynx/sail              {:mvn/version "0.8.15"}}
+           com.taoensso/faraday {:mvn/version "1.12.3"}
+           clj-http/clj-http {:mvn/version "3.13.0"}
+           ring/ring-defaults {:mvn/version "0.5.0"}
+           ring-oauth2/ring-oauth2 {:mvn/version "0.2.2"}}
+ :mvn/repos {"ossrh-snapshots" {:url "https://s01.oss.sonatype.org/content/repositories/snapshots"}}
  :paths   ["src" "resources"]
  :aliases {:dev
            {:extra-paths ["src-dev"]
             :extra-deps  {thheller/shadow-cljs          {:mvn/version "2.27.4"}
+                          nrepl/nrepl {:mvn/version "1.2.0"}
                           io.github.clojure/tools.build {:mvn/version "0.9.6"
                                                          :exclusions  [com.google.guava/guava ; Guava version conflict between tools.build and clojurescript.
                                                                        org.slf4j/slf4j-nop]} ; clashes with app logger

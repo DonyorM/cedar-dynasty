@@ -1,8 +1,21 @@
-# Electric Starter App
+# Cedar Dynasty
 
-A minimal Electric Clojure app, and instructions on how to integrate it into an existing app. For more demos and examples, see [Electric Fiddle](https://github.com/hyperfiddle/electric-fiddle).
+A small app to play the game Cedar Dynasty based on the old card game Kings & Scoundrels and inspired by Great Dalmuti.
 
 ## Instructions
+
+### Setup a Cognito Instance
+
+Create a new AWS Cognito instance and set up the user pool as you desire. Create an app client set up as a "Confidential Client".
+Set `http://localhost:8090/oauth2-return` as part of the Allowed Callback URLs.
+
+Once created, create the .env file and set the client id, client secret, and hosted UI url variables as follows:
+
+```shell
+COGNITO_CLIENT_ID='<client_ud>'
+COGNITO_CLIENT_SECRET='<client_secret>'
+COGNITO_UI_URL='<cognito_domain>'
+```
 
 Dev build:
 
