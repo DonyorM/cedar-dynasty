@@ -7,7 +7,8 @@
            com.taoensso/faraday {:mvn/version "1.12.3"}
            clj-http/clj-http {:mvn/version "3.13.0"}
            ring/ring-defaults {:mvn/version "0.5.0"}
-           ring-oauth2/ring-oauth2 {:mvn/version "0.2.2"}}
+           ring-oauth2/ring-oauth2 {:mvn/version "0.2.2"}
+           com.github.sikt-no/clj-jwt {:mvn/version "0.5.98"}}
  :mvn/repos {"ossrh-snapshots" {:url "https://s01.oss.sonatype.org/content/repositories/snapshots"}}
  :paths   ["src" "resources"]
  :aliases {:dev

@@ -30,7 +30,7 @@
 
        (shadow-server/start!)
        (shadow/watch :dev)
-       (comment (hadow-server/stop!))
+       (comment (shadow-server/stop!))
 
        (def server (jetty/start-server!
                      (fn [ring-request]

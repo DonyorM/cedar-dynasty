@@ -4,22 +4,9 @@
             [hyperfiddle.electric-dom2 :as dom]
             [great-dalmuti.components.button :refer [Button]]))
 
-(defonce logged-in-users (atom {}))
-(e/defn Login [set-current-user]
+(e/defn Login []
   (e/client
-    (let [!username (atom "")
-          username (e/watch !username)
-          a (e/watch logged-in-users)]
-      (ui4/input username (e/fn [v] (reset! !username v))
-                 (dom/props {:class "text-black"}))
-      (Button.
-        {:on-click
-         (e/fn []
-           (e/client
-             (if-let [current-user-id (get @logged-in-users username)]
-               (new set-current-user current-user-id username)
-               (let [new-user-id (random-uuid)]
-                 (swap! logged-in-users assoc username new-user-id)
-                 (new set-current-user new-user-id username)))))
-         :text "Submit"})
-      (dom/p (dom/text a)))))
+    (dom/div (dom/props {:class "h-full text-center flex flex-col justify-center items-center gap-2 p-4"})
+             (dom/h1 (dom/props {:class "text-3xl font-bold"}) (dom/text "Cedar Dynasty"))
+             (dom/p (dom/text "Please click below to login"))
+             (dom/a (dom/props {:href "/oauth2" :class "rounded-lg bg-cyan-600 hover:bg-cyan-400 py-2 px-4 font-bold disabled:bg-gray-400 disabled:text-gray-800"}) (dom/text "Sign In")))))

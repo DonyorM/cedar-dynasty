@@ -37,26 +37,19 @@
 
 (e/defn Main [ring-request]
   (e/server
-    ;(clojure.pprint/pprint ring-request)
-    ;(println (-> ring-request :oauth2/access-tokens))
-    (let [!current-player (atom nil)
-          current-player-id (e/watch !current-player)
+    (let [current-player-id (get-in ring-request [:session :user-id])
           game (e/watch !game)]
       (e/client
         (binding [dom/node js/document.body]
           (dom/div (dom/props {:class "min-h-screen bg-sky-800 text-white h-screen"})
-                   (dom/div (dom/props {:class "flex justify-center gap-6 w-full"})
-                            (Button. {:text "Re-deal"
-                                      :on-click (e/fn []
-                                                  (e/server (swap! !game a/deal-cards [:1 :2 :2 :3 :3 :3 :4 :4])))})
-                            (Button. {:text "New Game"
-                                      :on-click (e/fn []
-                                                  (e/server (reset! !game (new-game current-player-id (::spec/name (u/user-for-id game current-player-id))))))}))
                    (if (and current-player-id (some #{current-player-id} (map ::spec/user-id (::spec/players game))))
-                     (e/server
-                       (Game. !game current-player-id))
-                     (Login.
-                       (e/fn [user-id name]
+                     (do (dom/div (dom/props {:class "flex justify-center gap-6 w-full"})
+                                  (Button. {:text     "Re-deal"
+                                            :on-click (e/fn []
+                                                        (e/server (swap! !game a/deal-cards [:1 :2 :2 :3 :3 :3 :4 :4])))})
+                                  (Button. {:text     "New Game"
+                                            :on-click (e/fn []
+                                                        (e/server (reset! !game (new-game current-player-id (::spec/name (u/user-for-id game current-player-id))))))}))
                          (e/server
-                           (swap! !game a/upsert-player user-id name)
-                           (reset! !current-player user-id)))))))))))
+                           (Game. !game current-player-id)))
+                     (Login.))))))))

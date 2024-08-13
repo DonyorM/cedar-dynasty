@@ -65,13 +65,14 @@ information."
   [next-handler config]
   (fn [ring-req]
     (if-let [response (res/resource-response (str (check string? (:resources-path config)) "/index.html"))]
-      (if-let [bag (merge config (get-modules (check string? (:manifest-path config))))]
-        (-> (res/response (template (slurp (:body response)) bag)) ; TODO cache in prod mode
-            (res/content-type "text/html")                  ; ensure `index.html` is not cached
-            (res/header "Cache-Control" "no-store")
-            (res/header "Last-Modified" (get-in response [:headers "Last-Modified"])))
-        (-> (res/not-found (pr-str ::missing-shadow-build-manifest)) ; can't inject js modules
-            (res/content-type "text/plain")))
+      (-> (if-let [bag (merge config (get-modules (check string? (:manifest-path config))))]
+            (-> (res/response (template (slurp (:body response)) bag)) ; TODO cache in prod mode
+                (res/content-type "text/html")              ; ensure `index.html` is not cached
+                (res/header "Cache-Control" "no-store")
+                (res/header "Last-Modified" (get-in response [:headers "Last-Modified"])))
+            (-> (res/not-found (pr-str ::missing-shadow-build-manifest)) ; can't inject js modules
+                (res/content-type "text/plain")))
+          (assoc :session (:session ring-req)))
       ;; index.html file not found on classpath
       (next-handler ring-req))))
 
@@ -81,14 +82,10 @@ information."
 
 (defn handle-sign-in
   [request]
-  (println "---------Session---------")
-  (clojure.pprint/pprint request)
-  (println "--------------------------")
-  (println (:oauth2/access-tokens request))
-  (println "--------------------------\n")
-  {:status  302
-   :headers {"Location" "/"}
-   :session (update (:session request) :test-uuid #(or % (random-uuid)))})
+  (let [id-token (get-in request [:oauth2/access-tokens :cognito :id-token])]
+    {:status  302
+     :headers {"Location" "/"}
+     :session (assoc (:session request) :user-id (auth/get-user-id id-token))}))
 
 (defn wrap-oauth-landing [next-handler]
   (fn [{:keys [uri request-method] :as request}]
@@ -101,7 +98,6 @@ information."
   ;; these compose as functions, so are applied bottom up
   (-> not-found-handler
       (wrap-index-page config)                              ; 3. otherwise fallback to default page file
-
       wrap-oauth-landing
       (wrap-oauth2 {:cognito
                     {:authorize-uri    (str config/COGNITO_UI_URL "/oauth2/authorize")
@@ -113,18 +109,20 @@ information."
                      :redirect-uri     "/oauth2-return"
                      :landing-uri      "/oauth2-landing"
                      }})
-      (wrap-defaults (-> site-defaults (assoc-in [:session :cookie-attrs :same-site] :lax)
-                         (assoc-in [:session :store] (ring.middleware.session.memory/memory-store))))
       (wrap-params)
-
-      ;(wrap-defaults (-> site-defaults (assoc-in [:session :cookie-attrs :same-site] :lax)))
       (wrap-resource (:resources-path config))              ; 2. serve static file from classpath
       (wrap-content-type)                                   ; 1. detect content (e.g. for index.html)
       ))
 
+
+
 (defn middleware [config entrypoint]
-  (-> (http-middleware config)                              ; 2. otherwise, serve regular http content
-      (electric-websocket-middleware config entrypoint)))   ; 1. intercept websocket upgrades and maybe start Electric
+  (let [session-store (ring.middleware.session.memory/memory-store)]
+    (-> (http-middleware config)                            ; 2. otherwise, serve regular http content
+        (electric-websocket-middleware config entrypoint)   ; 1. intercept websocket upgrades and maybe start Electric
+
+        (wrap-defaults (-> site-defaults (assoc-in [:session :cookie-attrs :same-site] :lax)
+                           (assoc-in [:session :store] session-store))))))
 
 (defn- add-gzip-handler!
   "Makes Jetty server compress responses. Optional but recommended."
