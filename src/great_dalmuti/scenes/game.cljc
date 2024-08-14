@@ -1,4 +1,4 @@
-(ns great-dalmuti.game
+(ns great-dalmuti.scenes.game
   (:require [clojure.spec.alpha :as s]
             [clojure.string :as string]
             [great-dalmuti.utils :as u]

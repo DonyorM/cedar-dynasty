@@ -1,6 +1,5 @@
-(ns great-dalmuti.login
+(ns great-dalmuti.scenes.login
   (:require [hyperfiddle.electric :as e]
-            [hyperfiddle.electric-ui4 :as ui4]
             [hyperfiddle.electric-dom2 :as dom]
             [great-dalmuti.components.button :refer [Button]]))
 

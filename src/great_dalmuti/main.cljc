@@ -1,12 +1,15 @@
 (ns great-dalmuti.main
-  (:require [great-dalmuti.actions :as a]
+  (:require [contrib.electric-goog-history :as history]
+            [great-dalmuti.actions :as a]
             [great-dalmuti.utils :as u]
             [hyperfiddle.electric :as e]
             [hyperfiddle.electric-dom2 :as dom]
             [great-dalmuti.spec :as spec]
             [great-dalmuti.actions :as a]
-            [great-dalmuti.game :refer [Game]]
-            [great-dalmuti.login :refer [Login]]
+            [great-dalmuti.utils.routes :as routes]
+            [great-dalmuti.scenes.game :refer [Game]]
+            [great-dalmuti.scenes.login :refer [Login]]
+            [great-dalmuti.scenes.new-game :refer [NewGame]]
             [great-dalmuti.components.button :refer [Button]]))
 
 (def bob-id (random-uuid))
@@ -40,16 +43,23 @@
     (let [current-player-id (get-in ring-request [:session :user-id])
           game (e/watch !game)]
       (e/client
-        (binding [dom/node js/document.body]
-          (dom/div (dom/props {:class "min-h-screen bg-sky-800 text-white h-screen"})
-                   (if (and current-player-id (some #{current-player-id} (map ::spec/user-id (::spec/players game))))
-                     (do (dom/div (dom/props {:class "flex justify-center gap-6 w-full"})
-                                  (Button. {:text     "Re-deal"
-                                            :on-click (e/fn []
-                                                        (e/server (swap! !game a/deal-cards [:1 :2 :2 :3 :3 :3 :4 :4])))})
-                                  (Button. {:text     "New Game"
-                                            :on-click (e/fn []
-                                                        (e/server (reset! !game (new-game current-player-id (::spec/name (u/user-for-id game current-player-id))))))}))
-                         (e/server
-                           (Game. !game current-player-id)))
-                     (Login.))))))))
+        (binding [dom/node js/document.body
+                  routes/route-match routes/re-router
+                  routes/route-name (some-> routes/re-router :data :name)]
+          #_(history/DemoGoogHistory.)
+          (println routes/route-match)
+          (let [route history/path]
+            (dom/div (dom/props {:class "min-h-screen bg-sky-800 text-white h-screen"})
+                     (if current-player-id
+                       (if-let [code (some-> routes/route-match :path-params :code)]
+                         (do (dom/div (dom/props {:class "flex justify-center gap-6 w-full"})
+                                      (Button. {:text     "Re-deal"
+                                                :on-click (e/fn []
+                                                            (e/server (swap! !game a/deal-cards [:1 :2 :2 :3 :3 :3 :4 :4])))})
+                                      (Button. {:text     "New Game"
+                                                :on-click (e/fn []
+                                                            (e/server (reset! !game (new-game current-player-id (::spec/name (u/user-for-id game current-player-id))))))}))
+                             (e/server
+                               (Game. !game current-player-id)))
+                         (NewGame.))
+                       (Login.)))))))))
