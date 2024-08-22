@@ -19,8 +19,8 @@ services:
       - ".:/app"
     environment:
       - DYNAMODB_ENDPOINT=http://dynamodb:8000
-      - AWS_ACCESS_KEY="thisisirrelevant"
-      - AWS_SECRET_KEY="thisisirrelevant"
+      - AWS_ACCESS_KEY=thisisirrelevant
+      - AWS_SECRET_KEY=thisisirrelevant
       - COGNITO_CLIENT_ID=${COGNITO_CLIENT_ID}
       - COGNITO_CLIENT_SECRET=${COGNITO_CLIENT_SECRET}
       - COGNITO_UI_URL=${COGNITO_UI_URL}

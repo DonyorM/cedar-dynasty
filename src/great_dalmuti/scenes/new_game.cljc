@@ -1,12 +1,10 @@
 (ns great-dalmuti.scenes.new-game
   (:require [great-dalmuti.utils.routes :as routes]
             [hyperfiddle.electric :as e]
-            [hyperfiddle.electric-ui4 :as ui4]
             [great-dalmuti.components.button :refer [Button]]
             [contrib.str :refer [empty->nil]]
             [hyperfiddle.electric-dom2 :as dom]
-            [great-dalmuti.utils.routes :as routes]
-            [contrib.electric-goog-history :as history]))
+            [great-dalmuti.utils.routes :as routes]))
 
 (e/defn NewGame []
   (e/client
@@ -21,5 +19,5 @@
                                                   (when-some [v (empty->nil (.substr (.. e -target -value) 0 100))]
                                                     (routes/Navigate. :game {:path-params {:code v}})))
                                                 (reset! !game-code (.-value dom/node))))))
-               (Button. {:text "New Game"
-                 :on-click (e/fn [e] (routes/Navigate. :game {:path-params {:code @!game-code}}))})))))
+               (Button. {:text "Join or Create Game"
+                 :on-click (e/fn [] (routes/Navigate. :game {:path-params {:code @!game-code}}))})))))
