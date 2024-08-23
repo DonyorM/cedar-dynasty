@@ -13,7 +13,8 @@
           offset (e/watch !offset)
           swipe-start-val (atom nil)
           type-counts (count cards)]
-      (dom/div (dom/props {:class "overflow-x-scroll overflow-y-hidden"})
+      ;; The padding on the bottom means the transformed cards won't disappear down the bottom of the page
+      (dom/div (dom/props {:class "overflow-x-scroll overflow-y-hidden pb-20"})
                (dom/div (dom/props {:class "flex px-4 transition-transform"
                                     :style {:transform (str "translateX(-" (* offset 7) "rem)")}})
                         (dom/on! "touchstart" (fn [event]
@@ -31,7 +32,8 @@
                                            (when (> offset 0)
                                              (swap! !offset dec)))))))
                         (e/server
-                          (e/for-by key [[card-val card-count] cards]
+                          (e/for-by key [[card-val card-count] (sort-by #(.indexOf spec/card-order (first %))
+                                                                        cards)]
                                     (when (> card-count 0)
                                       (e/client
                                         (Card. card-val card-count

@@ -21,7 +21,7 @@
                               (dom/text "Enter Your Display Name:")
                               (dom/input
                                 (dom/props {:placeholder "" :maxlength 100 :class "text-black"})
-                                (dom/on "keydown" (e/fn [e]
+                                (dom/on "keyup" (e/fn [e]
                                                     (when (= "Enter" (.-key e))
                                                       (when-some [v (empty->nil (.substr (.. e -target -value) 0 100))]
                                                         (new save-name v)))

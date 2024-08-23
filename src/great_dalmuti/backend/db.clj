@@ -42,7 +42,7 @@
 (defn- get-game-from-db
   [game-code]
   (try
-    (far/get-item client-opts :games {:id game-code})
+    (:data (far/get-item client-opts :games {:id game-code}))
     (catch AmazonServiceException e
       (println (.getMessage e))
       nil)))
@@ -62,8 +62,13 @@
 
 (defn swap-game!
   [game-code f & args]
-  (let [result (swap! !current-games #(apply f (get % game-code) args))]
-    (save-game! game-code (get result game-code))))
+  (comment (db/swap-game! game-code update ::spec/players conj {::spec/user-id current-player-id
+                                                                ::spec/name    player-name
+                                                                ::spec/cards   {}}))
+  (let [result (swap! !current-games (fn [current-games]
+                                       (update current-games game-code #(apply f % args))))]
+    (save-game! game-code (get result game-code))
+    (get-game result)))
 
 (let [tables (far/list-tables client-opts)]
   (when (not-every? #(some #{%} tables) REQUIRED_TABLES)
