@@ -87,18 +87,19 @@ information."
      :headers {"Location" "/"}
      :session (assoc (:session request) :user-id (auth/get-user-id id-token))}))
 
-(defn wrap-oauth-landing [next-handler]
+(defn custom-routes [next-handler]
   (fn [{:keys [uri request-method] :as request}]
     (let [signature [uri request-method]]
       (cond
         (= signature ["/oauth2-landing" :get]) (handle-sign-in request)
+        (= signature ["/health" :get]) {:status 200}
         :default (next-handler request)))))
 
 (defn http-middleware [config]
   ;; these compose as functions, so are applied bottom up
   (-> not-found-handler
       (wrap-index-page config)                              ; 3. otherwise fallback to default page file
-      wrap-oauth-landing
+      custom-routes
       (wrap-oauth2 {:cognito
                     {:authorize-uri    (str config/COGNITO_UI_URL "/oauth2/authorize")
                      :access-token-uri (str config/COGNITO_UI_URL "/oauth2/token")
