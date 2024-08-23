@@ -1,10 +1,8 @@
 (ns cedar-dynasty.scenes.collect-user-name
-  (:require [cedar-dynasty.utils.routes :as routes]
-            [hyperfiddle.electric :as e]
+  (:require [hyperfiddle.electric :as e]
             [cedar-dynasty.components.button :refer [Button]]
             [contrib.str :refer [empty->nil]]
             [hyperfiddle.electric-dom2 :as dom]
-            [cedar-dynasty.utils.routes :as routes]
             #?(:clj [cedar-dynasty.backend.db :as db])))
 
 

@@ -10,7 +10,8 @@
            ring-oauth2/ring-oauth2 {:mvn/version "0.2.2"}
            com.github.sikt-no/clj-jwt {:mvn/version "0.5.98"}
            metosin/reitit-core {:mvn/version "0.7.1"}
-           metosin/reitit-frontend {:mvn/version "0.7.1"}}
+           metosin/reitit-frontend {:mvn/version "0.7.1"}
+           org.clojure/test.check        {:mvn/version "1.1.1"}}
  :mvn/repos {"ossrh-snapshots" {:url "https://s01.oss.sonatype.org/content/repositories/snapshots"}}
  :paths   ["src" "resources"]
  :aliases {:dev
@@ -20,7 +21,7 @@
                           io.github.clojure/tools.build {:mvn/version "0.9.6"
                                                          :exclusions  [com.google.guava/guava ; Guava version conflict between tools.build and clojurescript.
                                                                        org.slf4j/slf4j-nop]} ; clashes with app logger
-                          org.clojure/test.check        {:mvn/version "1.1.1"}}}
+                                                                       }}
            :prod
            {:extra-paths ["src-prod"]}
 

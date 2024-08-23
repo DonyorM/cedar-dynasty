@@ -19,7 +19,7 @@
     ;; Server is therefore aware of the program version.
     ;; The client's version is injected in the compiled .js file.
     (doto (compile-time-resource "electric-manifest.edn") prn)
-    {:host "0.0.0.0", :port 8080,
+    {:host "0.0.0.0", :port 8090,
      :resources-path "public/cedar_dynasty"
      ;; shadow build manifest path, to get the fingerprinted main.sha1.js file to ensure cache invalidation
      :manifest-path "public/cedar_dynasty/js/manifest.edn"}))

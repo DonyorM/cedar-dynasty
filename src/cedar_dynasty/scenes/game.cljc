@@ -2,7 +2,6 @@
   (:require [clojure.spec.alpha :as s]
             [clojure.string :as string]
             #?(:clj [cedar-dynasty.backend.db :as db])
-            #?(:clj [clojure.core.async :refer [go]])
             [cedar-dynasty.utils :as u]
             [cedar-dynasty.actions :as a]
             [hyperfiddle.electric :as e]
@@ -35,7 +34,6 @@
                         selected-count)})))
 
 (defn new-game [current-player-id current-player-name]
-  (println "name is" current-player-name)
   {::spec/players [{::spec/user-id current-player-id
                     ::spec/name current-player-name
                     ::spec/cards {}}]

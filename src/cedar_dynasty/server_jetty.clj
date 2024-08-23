@@ -1,6 +1,7 @@
 (ns cedar-dynasty.server-jetty
   "Electric integrated into a sample ring + jetty app."
   (:require
+    [cedar-dynasty.backend.db :as db]
     [clojure.edn :as edn]
     [clojure.java.io :as io]
     [clojure.string :as str]
@@ -17,7 +18,6 @@
     [ring.middleware.defaults :refer [wrap-defaults site-defaults]]
     [ring.middleware.session.memory]
     [cedar-dynasty.backend.config :as config]
-    [ring.middleware.session :refer [wrap-session]]
     [cedar-dynasty.backend.auth :as auth])
   (:import
     (org.eclipse.jetty.server.handler.gzip GzipHandler)
@@ -148,6 +148,7 @@ information."
                      {:keys [port host]
                       :or   {port 8080, host "0.0.0.0"}
                       :as   config}]
+  (db/check-database-setup!)
   (let [server (ring/run-jetty (middleware config entrypoint)
                                (merge {:port         port
                                        :join?        false

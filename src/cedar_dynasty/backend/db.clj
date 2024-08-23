@@ -70,10 +70,6 @@
     (save-game! game-code (get result game-code))
     (get-game result)))
 
-(let [tables (far/list-tables client-opts)]
-  (when (not-every? #(some #{%} tables) REQUIRED_TABLES)
-    (setup-tables!)))
-
 (defn get-user [user-id]
   (try
     (far/get-item client-opts :users {:id (str user-id)})
@@ -83,3 +79,9 @@
 
 (defn set-user-name [user-id name]
   (far/put-item client-opts :users {:id (str user-id) :name name}))
+
+(defn check-database-setup! []
+  "Checks if the tables needed are created and if not creates them"
+  (let [tables (far/list-tables client-opts)]
+    (when (not-every? #(some #{%} tables) REQUIRED_TABLES)
+      (setup-tables!))))
