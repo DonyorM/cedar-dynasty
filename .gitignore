@@ -9,7 +9,7 @@
 .nrepl-port
 .shadow-cljs
 node_modules
-/resources/public/great_dalmuti/js
+/resources/public/cedar_dynasty/js
 /resources/electric-manifest.edn
 /target
 .DS_Store

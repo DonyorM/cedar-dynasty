@@ -1,4 +1,4 @@
-name: hyperfiddle/great-dalmuti
+name: hyperfiddle/cedar-dynasty
 on:
   push:
     branches:

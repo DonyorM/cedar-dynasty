@@ -1,4 +1,4 @@
-(ns great-dalmuti.test
+(ns cedar-dynasty.test
   (:require
     [clojure.spec.alpha      :as s]
     [clojure.spec.test.alpha :as stest]

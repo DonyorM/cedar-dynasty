@@ -1,8 +1,8 @@
-(ns great-dalmuti.game-test
+(ns cedar-dynasty.game-test
   (:require [clojure.test :refer :all]
-            [great-dalmuti.game :as game]
-            [great-dalmuti.spec :as spec]
-            [great-dalmuti.test :refer [defspec-test]]))
+            [cedar-dynasty.game :as game]
+            [cedar-dynasty.spec :as spec]
+            [cedar-dynasty.test :refer [defspec-test]]))
 
 (def test-uuid (parse-uuid "0f02b777-1269-4028-8025-d25b0166fad1"))
 
