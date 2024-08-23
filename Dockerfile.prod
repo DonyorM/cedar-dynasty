@@ -1,3 +1,20 @@
+FROM node:22.7-alpine AS styles
+
+WORKDIR /app
+
+COPY package.json package.json
+COPY package-lock.json package-lock.json
+
+RUN npm install
+
+COPY resources resources
+COPY src src
+COPY src-build src-build
+COPY src-prod src-prod
+COPY tailwind.config.js tailwind.config.js
+
+RUN npx tailwindcss -m -i resources/main.css -o resources/public/cedar_dynasty/styles.gen.css
+
 FROM clojure:openjdk-11-tools-deps AS build
 WORKDIR /app
 
@@ -10,6 +27,7 @@ COPY src src
 COPY src-build src-build
 COPY src-prod src-prod
 COPY resources resources
+COPY --from=styles /app/resources/public/cedar_dynasty/styles.gen.css resources/public/cedar_dynasty/styles.gen.css
 
 RUN clojure -X:build:prod uberjar :build/jar-name app.jar
 
