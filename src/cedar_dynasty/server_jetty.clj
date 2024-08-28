@@ -107,8 +107,8 @@ information."
                      :client-secret    config/COGNITO_CLIENT_SECRET
                      :scopes           ["openid", "email"]
                      :launch-uri       "/oauth2"
-                     :redirect-uri     "/oauth2-return"
-                     :landing-uri      "/oauth2-landing"
+                     :redirect-uri (str config/APP_URL "/oauth2-return")
+                     :landing-uri "/oauth2-landing"
                      }})
       (wrap-params)
       (wrap-resource (:resources-path config))              ; 2. serve static file from classpath

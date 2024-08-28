@@ -25,4 +25,5 @@ services:
       - COGNITO_CLIENT_SECRET=${COGNITO_CLIENT_SECRET}
       - COGNITO_UI_URL=${COGNITO_UI_URL}
       - COGNITO_KEYS_URL=${COGNITO_KEYS_URL}
+      - APP_URL=http://localhost:8090
 

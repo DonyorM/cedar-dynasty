@@ -7,3 +7,5 @@
 (def COGNITO_UI_URL (System/getenv "COGNITO_UI_URL"))
 
 (def COGNITO_KEYS_URL (System/getenv "COGNITO_KEYS_URL"))
+
+(def APP_URL (or (System/getenv "APP_URL") ""))
