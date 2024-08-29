@@ -79,7 +79,7 @@
                   (dom/div (dom/props {:class "flex justify-center gap-6 w-full"})
                            (Button. {:text     "Re-deal"
                                      :on-click (e/fn []
-                                                 (e/server (db/swap-game! game-code a/deal-cards [:1 :2 :2 :3 :3 :3 :4 :4])))})
+                                                 (e/server (db/swap-game! game-code a/deal-cards)))})
                            (Button. {:text     "New Game"
                                      :on-click (e/fn []
                                                  (e/server (db/reset-game! game-code (new-game current-player-id player-name))))}))
