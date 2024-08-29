@@ -1,4 +1,4 @@
-FROM clojure:tools-deps-bullseye AS build
+FROM public.ecr.aws/docker/library/clojure:openjdk-11-tools-deps-slim-bullseye AS build
 WORKDIR /app
 
 COPY deps.edn deps.edn

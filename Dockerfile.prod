@@ -1,4 +1,4 @@
-FROM node:22.7-alpine AS styles
+FROM public.ecr.aws/docker/library/node:22.7.0-alpine AS styles
 
 WORKDIR /app
 
@@ -15,7 +15,7 @@ COPY tailwind.config.js tailwind.config.js
 
 RUN npx tailwindcss -m -i resources/main.css -o resources/public/cedar_dynasty/styles.gen.css
 
-FROM clojure:openjdk-11-tools-deps AS build
+FROM public.ecr.aws/docker/library/clojure:openjdk-11-tools-deps-slim-bullseye AS build
 WORKDIR /app
 
 COPY deps.edn deps.edn
@@ -31,9 +31,9 @@ COPY --from=styles /app/resources/public/cedar_dynasty/styles.gen.css resources/
 
 RUN clojure -X:build:prod uberjar :build/jar-name app.jar
 
-FROM amazoncorretto:11-alpine3.20 AS run
+FROM public.ecr.aws/amazoncorretto/amazoncorretto:11 AS run
 
 COPY --from=build /app/app.jar /app/app.jar
 WORKDIR /app
 
-CMD java -cp app.jar clojure.main -m prod
+CMD ["java", "-cp", "app.jar", "clojure.main", "-m",         "prod"]
